@@ -1,44 +1,55 @@
 #### Preamble ####
-# Purpose: Cleans the raw plane data recorded by two observers..... [...UPDATE THIS...]
-# Author: Rohan Alexander [...UPDATE THIS...]
-# Date: 6 April 2023 [...UPDATE THIS...]
-# Contact: rohan.alexander@utoronto.ca [...UPDATE THIS...]
+# Purpose: Cleans the raw dataset
+# Author: Wentao Sun
+# Data: 1 April 2024
+# Contact: went.sun@mail.utoronto.ca
 # License: MIT
-# Pre-requisites: [...UPDATE THIS...]
-# Any other information needed? [...UPDATE THIS...]
+# Pre-requisites: Must have raw data downloaded.
+# Any other information needed? None.
 
 #### Workspace setup ####
+
 library(tidyverse)
+library(lubridate)
+
 
 #### Clean data ####
-raw_data <- read_csv("inputs/data/plane_data.csv")
+### import raw data ###
+water_raw <- read_csv("data/raw_data/Raw_Data_WaterQuality.csv",
+                                    na.strings = c("N/A",""))
 
-cleaned_data <-
-  raw_data |>
-  janitor::clean_names() |>
-  select(wing_width_mm, wing_length_mm, flying_time_sec_first_timer) |>
-  filter(wing_width_mm != "caw") |>
-  mutate(
-    flying_time_sec_first_timer = if_else(flying_time_sec_first_timer == "1,35",
-                                   "1.35",
-                                   flying_time_sec_first_timer)
-  ) |>
-  mutate(wing_width_mm = if_else(wing_width_mm == "490",
-                                 "49",
-                                 wing_width_mm)) |>
-  mutate(wing_width_mm = if_else(wing_width_mm == "6",
-                                 "60",
-                                 wing_width_mm)) |>
-  mutate(
-    wing_width_mm = as.numeric(wing_width_mm),
-    wing_length_mm = as.numeric(wing_length_mm),
-    flying_time_sec_first_timer = as.numeric(flying_time_sec_first_timer)
-  ) |>
-  rename(flying_time = flying_time_sec_first_timer,
-         width = wing_width_mm,
-         length = wing_length_mm
-         ) |> 
-  tidyr::drop_na()
+
+### Filter columns based on percentage of missing values ###
+na_prop <- apply(water_raw, 2, function(x) sum(is.na(x)))/nrow(water_raw)
+na_prop[na_prop>0.8] %>% names()
+na_prop[na_prop<=0.8] %>% names()
+
+
+### select variables of interest ###
+
+cleaned_water <- water_raw %>% 
+  # select variables of interest
+  select(Site_Id, Salinity..ppt.,
+         Dissolved.Oxygen..mg.L.,
+         pH..standard.units.,Secchi.Depth..m.,
+         Water.Depth..m.,Water.Temp...C., Air.Temp...F. ,
+         Read_Date) %>% 
+  # renamed column names for better comprehension
+  rename(Oxygen = Dissolved.Oxygen..mg.L.,
+         pH = pH..standard.units.,
+         Depth = Secchi.Depth..m.,
+         Salinity = Salinity..ppt.,
+         Water.Depth = Water.Depth..m.,
+         Water.Temp = Water.Temp...C., 
+         Air.Temp = Air.Temp...F. ) %>% 
+  na.omit() %>% 
+  mutate(Read_Date = mdy(Read_Date),
+         year = year(Read_Date) %>% factor(),
+         month = month(Read_Date) %>% factor()) %>% 
+  select(!Read_Date)
+
+#### Check data ####
+apply(cleaned_water,2,function(x) sum(is.na(x)))
 
 #### Save data ####
-write_csv(cleaned_data, "outputs/data/analysis_data.csv")
+write_csv(cleaned_water, "data/cleaned_data/cleaned_waterquality_data.csv")
