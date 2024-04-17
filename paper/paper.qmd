@@ -1,220 +1,252 @@
 ---
-title: "Analysis Toronto Library"
-subtitle: "My subtitle if needed"
-author: 
-  - Wentao Sun
-thanks: "Code and data are available at: https://github.com/TonySun1107/Toronto_library.git."
+title: "*"
+author: Wentao Sun
+thanks: "Code and data are available at: https://github.com/TonySun1107/Water_Quality.git"
 date: today
 date-format: long
-abstract: "First sentence. Second sentence. Third sentence. Fourth sentence."
+abstract: "*"
 format: pdf
+toc: true
 number-sections: true
 bibliography: references.bib
 ---
-
 ```{r}
 #| include: false
 #| warning: false
 #| message: false
 
+# SET UP WORKSPACE
 library(tidyverse)
-library(palmerpenguins)
+library(dplyr)
+library(here)
+library(modelsummary)
+library(tidyverse)
+library(lubridate)
+library(GGally)
+library(knitr)
+
 ```
-
-
+\newpage
 # Introduction
 
-You can and should cross-reference sections and sub-sections. We use @citeR and @rohan.
+As we moved into the 21st century, the growth of industry and technology brought environmental sustainability into focus. Water resources of desired quality and quantity are the foundation for human survival and sustainable development [@citehuang2021]. Sustainable development is development that meets the needs of the present without compromising the ability of future generations to meet their own needs [@citebrundtland1987]. The concept of sustainable development promotes accurate quantitative analysis and review of the human living environment, culminating in a burgeoning field of water quality research. This body of work is crucial in comprehending the nuanced impacts of modern society on natural water systems and in shaping policies for the preservation of these vital resources.
 
-The remainder of this paper is structured as follows. @sec-data....
+The dissolved oxygen (DO) concentration is a critical parameter for evaluating the ecological health of an aquatic environment [@citehuang2021]. This concentration results from an equilibrium between oxygen-producing (e.g., photosynthesis and air diffusing) and oxygen-consuming (e.g., aerobic respiration, nitrification, and chemical oxidation) processes in an aquatic environment [@citeolyaie2017]. In conditions of low dissolved oxygen concentrations prevalent in water bodies receiving heavy sewage pollution [@citeaston1973]. Combining quantitative data analysis and water quality research, this study investigated dissolved oxygen levels in a bay, a fishing pond, and three other pools to assess water quality in a variety of aquatic environments from 1989 to 2019.Data provided by the U.S. Department of the Interior were selected for this study to understand the various measurements of a given body of water, including salinity, ph, and water temperature. including salinity, ph, and water temperature. The dissolved oxygen of the waters were analyzed in detail using the Corrected Total Oxygen Reading (CTOR).The CTOR value can be used as a quantitative measure of the change in oxygen.The higher the CTOR, the higher the dissolved oxygen content of the waters and the healthier the water quality.The CTOR values are helpful in evaluating the impacts of the environmental policies and the natural variations on the aquatic health.The CTOR values are used to assess the impacts of the environmental policies and natural variations on the aquatic health.
+
+The paper is structured to facilitate a comprehensive understanding of the study and its implications. Following Section 1, Section 2 presents the data, detailing the data sources, analytical techniques, and the rationale behind the chosen methods. Section 4 discusses the results of the study, describing the trends summarized in the watershed quality data. Section 5 provides an in-depth discussion of these results, exploring potential factors influencing measurements, linking them to broader social policy and environmental issues, and providing recommendations for future research in this area.
+
+## Estimand
+
+The focus of this study was to estimate the causal effect of dissolved oxygen content of waters on water quality, with the salinity and pH of the waters being equally worthy of consideration. By studying the data obtained from various measurements in five different waters, the aim is to understand the impact of environmental policies and natural changes on aquatic health.
+
+# Data
+
+This section offers an overview of the datasets utilized in the analysis, focusing specifically on water quality indicators. The data, sourced from the open-access US data.gov database, encompasses measurements from a bay, a fishing pond, and three watersheds, covering the period from 1989 to 2019. The dataset includes detailed records of oxygen content, pH, salinity, and water temperature, each noted with specific dates. This comprehensive dataset enables a detailed examination of the temporal changes in water quality over the thirty-year period. Additionally, the analysis explores the relationships among oxygen content, pH, salinity, and overall water quality, providing insights into the environmental dynamics affecting these aquatic systems.
+
+## Source and Methodology
+
+The data collection process for this database was meticulously executed by the U.S. Department of the Interior (DOI), employing a diverse array of methodologies such as sampling, naturalistic observation, and experimental testing. This multi-faceted approach guaranteed a comprehensive and reliable dataset, which facilitates a thorough analysis and understanding of the environmental variables at play. Specifically, water quality data for the Refuge, collected bi-weekly by volunteers, includes measures of turbidity, pH, dissolved oxygen (DO), salinity, and temperature. Sampling is conducted at designated locations across several water bodies, including the Bay, D-Pool (fishing pond), and C-Pool, B-Pool, and A-Pool. This structured and regular data collection strategy provides valuable insights into the temporal dynamics of water quality within these aquatic ecosystems.
+
+The analysis of this paper makes use of the R programming language [@citeR] for statistical computations and visualizing data. The tidyverse package [@citetidyverse] is installed to gain access to other importantR packages, including the dplyr package [@citedplyr] used to manipulate and clean data, the readr package [@citereadr] to read and import data, the here package [@citehere]to create a path to specific saved files, the ggplot2 package [@citeggplot2] to create the data visualizations. Additionally, the lubridate package [@citelubridate] facilitated date and time manipulation, the kableExtra package [@citekableExtra] enhanced the creation of complex tables, and the GGally package [@citeGGally] provided extended visualization capabilities, particularly for pairwise data exploration. The modelsummary package [@citemodelsummary] was utilized for generating comprehensive summary tables. These tools collectively underpin the robust analytical framework that supports the findings presented herein.
 
 
+## Variables
 
-# Data {#sec-data}
-
-Some of our data is of penguins (@fig-bills), from @palmerpenguins.
+In order to better understand the data and the research process, we have selected the first ten rows of data to detail the research methodology used, explain its relevance and how it contributes to our understanding of the topic. Our focus is on salinity, oxygen, ph and air temperature in the selected waters at different times, which gives a comprehensive understanding of how water quality indicators change when different air temperatures are present.
 
 ```{r}
-#| label: fig-bills
-#| fig-cap: Bills of penguins
+#| label: tbl-display-raw-data
 #| echo: false
 
-ggplot(penguins, aes(x = island, fill = species)) +
-  geom_bar(alpha = 0.8) +
-  scale_fill_manual(values = c("darkorange","purple","cyan4"),
-                    guide = "none") +
-  theme_minimal() +
-  facet_wrap(~species, ncol = 1) +
-  coord_flip()
+#IMPORT CLEANED DATA FROM OUTPUTS FOLDER 
+water_cleaneddata <- read.csv(here::here("data/cleaned_waterquality_data.csv"),
+                  na.strings = c("N/A","")) 
+
+
+water_cleaneddata <- water_cleaneddata |>
+  arrange(year, month) |>
+  select(year, month, Site_Id, Salinity, Oxygen, pH, Air.Temp, Water.Temp)
+
+
+water_cleaneddata |>
+  slice(1:10) |> 
+  kable(
+    caption = "First Ten Rows of Water Quality from 1990 to 2019",
+    col.names = c("Year", "Month", "Site ID", "Salinity(ppt)", "Oxygen(mg/L)", "PH", "Air.Temp(°F)", "Water.Temp(°C)"),
+    linesep = "",
+    digits = 1,
+    booktabs = TRUE
+  )
+
+#print(water_cleaneddata)
 ```
 
-Talk more about it.
+table1, built with `kableExtra` [@citekableExtra], 	display the first ten rows for salinity, oxyge, PH, and air temperature of the selected waters. This is a more concise table after removing the vacant data, and it shows the statistics of each indicator for waters of different years and months, providing a streamlined view for subsequent analysis and processing.
 
-And also planes (@fig-planes). (You can change the height and width, but don't worry about doing that until you have finished every other aspect of the paper - Quarto will try to make it look nice and the defaults usually work well once you have enough text.)
+## Preliminary Analysis
 
 ```{r}
-#| label: fig-planes
-#| fig-cap: Relationship between wing length and width
+#| label: fig-correlation
+#| fig-cap: Correlation Matrix of Water Quality Indicators from 1989 to 2019
+#| echo: false
+#| #| warning: false
+
+water_cleaneddata %>%
+  select(!c(Site_Id, year, month)) %>%
+  ggpairs()
+
+```
+
+@fig-correlation, bulit with `GGally` [@citeGGally], presents a comprehensive correlation matrix of water quality indicators, encompassing salinity, dissolved oxygen content, pH levels, and air temperature, collated from 1989 to 2019. Each plot within the matrix elucidates the pairwise relationships between these critical environmental parameters. The diagonal histograms reveal the distribution of individual indicators, where the dissolved oxygen content exhibits a normal distribution, while pH levels display a bimodal distribution. The scatter plots below the diagonal illustrate the interaction between variables, with the correlation coefficient denoted for each. Noteworthy is the strong negative correlation between air temperature and dissolved oxygen, suggesting a marked decrease in oxygen levels as temperatures rise. On the other hand, salinity and pH exhibit a moderately positive correlation. 
+
+
+```{r}
+#| label: fig-year-oxygen
+#| fig-cap: Annual Variability of Dissolved Oxygen Concentrations from 1989 to 2019
 #| echo: false
 #| warning: false
-#| message: false
 
-analysis_data <- read_csv(here::here("data/analysis_data/analysis_data.csv"))
+ggplot(water_cleaneddata, aes(factor(year), Oxygen)) +
+  geom_boxplot() +
+  labs(x = "Year", y = "Dissolved Oxygen (mg/L)") + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
-analysis_data |> 
-  ggplot(aes(x = width, y = length)) +
-  geom_point(alpha = 0.8) +
-  theme_minimal() +
-  labs(x = "Wing width (mm)",
-       y = "Wing length (mm)")
 ```
 
-Talk way more about it. 
+@fig-year-oxygen displays a visual exploration of dissolved oxygen trends from 1989 to 2019. The boxplots demonstrate relatively stable median oxygen levels over the years, with interquartile ranges suggesting consistent variability. However, a distinct dip in levels between 1998 and 1999 indicates a significant disruption in oxygen balance, without noticeable recovery in the following years. This pattern may reflect specific environmental events impacting the water body's oxygenation.
 
+```{r}
+#| label: fig-month-oxygen
+#| fig-cap: Seasonal Variation in Dissolved Oxygen Concentration by Month from 1989 to 2019
+#| echo: false
+#| warning: false
+
+ggplot(water_cleaneddata,aes(factor(month),Oxygen))+
+  geom_boxplot()+
+  labs(x = "Month", y = "Dissolved Oxygen (mg/L)") +
+  theme(axis.text.x = element_text(angle = 45,
+                                   hjust = 1))
+```
+
+@fig-month-oxygen displays a monthly distribution of dissolved oxygen levels across an aquatic environment, showcasing the seasonal fluctuations within a calendar year. The boxplots are arranged to represent each month, revealing both median oxygen concentrations and the spread of values above and below the median—reflected by the interquartile range. It is notable that the later months exhibit greater variability, as evidenced by the length of the whiskers and the presence of outliers, which are indicative of sporadic events affecting water oxygenation. This visualization captures the cyclical nature of oxygen levels, potentially correlating with temperature changes and biological cycles within the ecosystem.
+
+
+```{r}
+#| label: fig-siteid-oxygen
+#| fig-cap: Distribution of Dissolved Oxygen Levels Across Sampling Sites from 1989 to 2019
+#| echo: false
+#| warning: false
+
+ggplot(water_cleaneddata,aes(Site_Id,Oxygen))+
+  geom_boxplot()+
+  labs(x = "Site", y = "Dissolved Oxygen (mg/L)") +
+  theme(axis.text.x = element_text(angle = 45,
+                                   hjust = 1))
+```
+
+@fig-siteid-oxygen illustrates the distribution of dissolved oxygen levels across various sites, as represented by boxplots. Each boxplot corresponds to a unique site ID, summarizing the central tendency and variability of oxygen measurements at each location. The median line within each box denotes the median dissolved oxygen concentration, while the hinges of the box reflect the interquartile range. Notably, certain sites exhibit a wider range of values, indicating more variability in oxygen levels, while others display a tighter interquartile range, suggesting more stable conditions. Outliers are depicted as individual points outside the whiskers, indicating observations that stand out from the general distribution and may warrant further investigation. The sites are labeled along the x-axis, which has been angled for improved readability. This figure provides a comparative view of oxygen content variability, a crucial indicator of water quality and aquatic health, among the sampled sites.
+
+
+
+
+## Measurements
+
+In this study, water quality in a variety of aquatic environments was assessed by analyzing dissolved oxygen levels, a key indicator of ecosystem health. The dataset used in this study consists of readings collected from multiple sites over a thirty-year period from 1989 through 2019, with measurements recorded every two weeks to capture seasonal and annual trends.
+
+The data were sourced from recognized online databases, ensuring the reliability and accuracy of the records. We employed the Corrected Total Oxygen Reading (CTOR). The CTOR is derived by dividing the unique oxygen measurements (types) by the square root of twice the total number of all measurements (tokens). This approach offers a normalized value, facilitating a valid comparison of oxygen levels across different sites and times. It effectively minimizes the influence of data quantity, allowing for a direct assessment of water quality. The CTOR values thus serve as a quantitative measure of oxygen variability and are instrumental in evaluating the impacts of environmental policies and natural changes on aquatic health.
 
 
 # Model
+```{r model, fig.cap="Model Diagnostic Plots", echo=FALSE, warning=FALSE, message=FALSE, fig.width=9, fig.height=7}
 
-The goal of our modelling strategy is twofold. Firstly,...
+water <-water_cleaneddata %>% 
+  mutate(year_1999 = ifelse(as.numeric(as.character(year)) >= 1999,1,0)) %>% 
+  select(!c(Air.Temp,year)) 
+fit1 <- lm(Oxygen ~ ., data = water)
 
-Here we briefly describe the Bayesian analysis model used to investigate... Background details and diagnostics are included in [Appendix -@sec-model-details].
-
-## Model set-up
-
-Define $y_i$ as the number of seconds that the plane remained aloft. Then $\beta_i$ is the wing width and $\gamma_i$ is the wing length, both measured in millimeters.  
-
-\begin{align} 
-y_i|\mu_i, \sigma &\sim \mbox{Normal}(\mu_i, \sigma) \\
-\mu_i &= \alpha + \beta_i + \gamma_i\\
-\alpha &\sim \mbox{Normal}(0, 2.5) \\
-\beta &\sim \mbox{Normal}(0, 2.5) \\
-\gamma &\sim \mbox{Normal}(0, 2.5) \\
-\sigma &\sim \mbox{Exponential}(1)
-\end{align}
-
-We run the model in R [@citeR] using the `rstanarm` package of @rstanarm. We use the default priors from `rstanarm`.
+par(mfrow = c(2,2))
+plot(fit1)
 
 
-### Model justification
+# water2 <-water_cleaneddata %>% 
+#   mutate(year_1999 = ifelse(as.numeric(as.character(year)) >= 1999,1,0)) %>% 
+#   select(!c(Air.Temp,Water.Depth,year)) 
+# fit1 <- lm(Oxygen ~ ., data = water2)
+# 
+# par(mfrow = c(2,2))
+# plot(fit1)
+# 
+# summary(fit1)
+# anova(fit1 , update(fit1, .~.-Site_Id))
+# anova(fit1 , update(fit1, .~.-month))
+# modelsummary(
+#   list(
+#     "model" = fit1),
+#   fmt = 2,
+#   stars = TRUE
+# )
+```
 
-We expect a positive relationship between the size of the wings and time spent aloft. In particular...
+upload 
 
-We can use maths by including latex between dollar signs, for instance $\theta$.
-
-
+\newpage
 # Results
 
-Our results are summarized in @tbl-modelresults.
-
 ```{r}
+#| label: tbl-ctor
+#| tbl-cap: Summary of Corrected Total Oxygen Reading (CTOR) Across Various Sites and Years
 #| echo: false
-#| eval: true
-#| warning: false
-#| message: false
-
-library(rstanarm)
-
-first_model <-
-  readRDS(file = here::here("models/first_model.rds"))
-```
-
-```{r}
-#| echo: false
-#| eval: true
-#| label: tbl-modelresults
-#| tbl-cap: "Explanatory models of flight time based on wing width and wing length"
 #| warning: false
 
-modelsummary::modelsummary(
-  list(
-    "First model" = first_model
-  ),
-  statistic = "mad",
-  fmt = 2
-)
+library(dplyr)
+library(lubridate)
+
+# Now, you can calculate the CTOR
+water_ctors <- water_cleaneddata %>%
+  group_by(Site_Id, year) %>%
+  summarise(
+    Total_Oxygen = sum(Oxygen, na.rm = TRUE),  # Sum of Oxygen readings for the year
+    Unique_Oxygen_Values = n_distinct(Oxygen),  # Number of unique Oxygen readings for the year
+    Tokens = n(),  # Total number of Oxygen readings for the year
+    CTOR = Unique_Oxygen_Values / (sqrt(2 * Tokens))  # Calculate the CTOR
+  )
+
+water_ctors |>
+  slice(1:1) |>
+  kable(
+    col.names = c("Site ID","Year", "Total Oxygen", "Unique Oxygen Values", "Tokens", "CTOR"),
+    linesep = "",
+    digits = 1,
+    booktabs = TRUE
+  )
 ```
 
 
+```{r}
+#| label: fig-ctor
+#| fig-cap: Corrected Total Oxygen Reading (CTOR) from 1989 to 2019
+#| echo: false
+#| warning: false
 
+ctor_plot <- ggplot(water_ctors, aes(x = as.factor(year), y = CTOR, fill = as.factor(Site_Id))) +
+  geom_boxplot() +
+  labs(
+    x = "Year",
+    y = "CTOR Value",
+    fill = "Site ID"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  scale_fill_brewer(palette = "Set1") # 使用色盘来区分不同的站点
 
+ctor_plot
+```
+
+\newpage
 # Discussion
 
-## First discussion point {#sec-first-point}
-
-If my paper were 10 pages, then should be be at least 2.5 pages. The discussion is a chance to show off what you know and what you learnt from all this. 
-
-## Second discussion point
-
-## Third discussion point
-
-## Weaknesses and next steps
-
-Weaknesses and next steps should also be included.
-
-\newpage
-
-\appendix
-
-# Appendix {-}
-
-
-# Additional data details
-
-# Model details {#sec-model-details}
-
-## Posterior predictive check
-
-In @fig-ppcheckandposteriorvsprior-1 we implement a posterior predictive check. This shows...
-
-In @fig-ppcheckandposteriorvsprior-2 we compare the posterior with the prior. This shows... 
-
-```{r}
-#| eval: true
-#| echo: false
-#| message: false
-#| warning: false
-#| label: fig-ppcheckandposteriorvsprior
-#| layout-ncol: 2
-#| fig-cap: "Examining how the model fits, and is affected by, the data"
-#| fig-subcap: ["Posterior prediction check", "Comparing the posterior with the prior"]
-
-pp_check(first_model) +
-  theme_classic() +
-  theme(legend.position = "bottom")
-
-posterior_vs_prior(first_model) +
-  theme_minimal() +
-  scale_color_brewer(palette = "Set1") +
-  theme(legend.position = "bottom") +
-  coord_flip()
-```
-
-## Diagnostics
-
-@fig-stanareyouokay-1 is a trace plot. It shows... This suggests...
-
-@fig-stanareyouokay-2 is a Rhat plot. It shows... This suggests...
-
-```{r}
-#| echo: false
-#| eval: true
-#| message: false
-#| warning: false
-#| label: fig-stanareyouokay
-#| fig-cap: "Checking the convergence of the MCMC algorithm"
-#| fig-subcap: ["Trace plot", "Rhat plot"]
-#| layout-ncol: 2
-
-plot(first_model, "trace")
-
-plot(first_model, "rhat")
-```
-
 
 
 \newpage
-
-
 # References
-
 
