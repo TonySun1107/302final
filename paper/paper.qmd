@@ -1,5 +1,6 @@
 ---
 title: "Impact of Water Conditions on Dissolved Oxygen Level"
+subtitle: "An Analysis of U.S. Water Quality Data From 1989 to 2019"
 author: Wentao Sun
 thanks: "Code and data are available at: https://github.com/TonySun1107/Water_Quality.git"
 date: today
