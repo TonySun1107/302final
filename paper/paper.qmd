@@ -57,7 +57,7 @@ In order to better understand the data and the research process, we have selecte
 #| echo: false
 
 #IMPORT CLEANED DATA FROM OUTPUTS FOLDER 
-water_cleaneddata <- read.csv(here::here("data/cleaned_waterquality_data.csv"),
+water_cleaneddata <- read.csv(here::here("data/cleaned_data/cleaned_waterquality_data.csv"),
                   na.strings = c("N/A","")) 
 
 
@@ -190,7 +190,7 @@ lin_model <- lm(Oxygen ~ Salinity + pH + Water.Temp + year_1999, data = water)
 par(mfrow = c(2,2))
 plot(lin_model)
 
-#lin_model <- readRDS(file = "/cloud/project/models/linear_model.rds")
+#lin_model <- readRDS(file = "models/linear_model.rds")
 
 ```
 
